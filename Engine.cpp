@@ -6,7 +6,7 @@ Engine::Engine()
 Engine::~Engine()
 {}
 
-void Engine::Init(const char* title, glm::u32vec2 screenPos, glm::u16vec2 size, bool fullscreen)
+void Engine::Init(const char* title, glm::u32vec2 screenPos, glm::u32vec2 size, bool fullscreen)
 {
 	if (SDL_Init(SDL_INIT_EVERYTHING) == 1) return;
 #ifdef _DEBUG
@@ -30,7 +30,7 @@ void Engine::Init(const char* title, glm::u32vec2 screenPos, glm::u16vec2 size, 
 	std::cout << "Render created" << std::endl;
 #endif
 
-	m_Font = TTF_OpenFont((std::string(SDL_GetBasePath()) + "arial.ttf").c_str(), 20);
+	m_Font = TTF_OpenFont((std::string(SDL_GetBasePath()) + "arial.ttf").c_str(), 25);
 	if (!m_Font) return;
 #ifdef _DEBUG
 	std::cout << "Loaded font" << std::endl;
@@ -40,16 +40,16 @@ void Engine::Init(const char* title, glm::u32vec2 screenPos, glm::u16vec2 size, 
 	SDL_DisplayMode DM;
 	SDL_GetCurrentDisplayMode(0, &DM);
 
-	m_MaxFPS = 30;
+	m_MaxFPS = DM.refresh_rate;
 
 	// Set up world
-	Player* player = new Player(glm::vec2(size.x / 2, size.y / 2), m_Renderer);
+	Player* player = new Player(glm::i16vec2(size.x / 2, size.y / 2), m_Renderer);
 	// Seed randomness with current time
 	srand(time(0));
 	std::vector<SquareObject*> apples = std::vector<SquareObject*>();
-	for (size_t i = 0; i < 3; i++)
+	for (size_t i = 0; i < 200; i++)
 	{
-		glm::u16vec2 position = glm::u16vec2(rand() % size.x, rand() % size.y);
+		glm::i16vec2 position = glm::i16vec2(rand() % size.x, rand() % size.y);
 		apples.push_back(new SquareObject(position, 10, m_Renderer));
 	}
 	m_World = new World(player, apples, m_Renderer);
@@ -92,20 +92,22 @@ void Engine::HandleEvents()
 	case SDL_KEYUP:
 		if (m_World->GetPlayer()->GetVelocity().y != 1 && (event.key.keysym.sym == SDL_KeyCode::SDLK_UP || event.key.keysym.sym == SDL_KeyCode::SDLK_w))
 		{
-			m_World->GetPlayer()->SetVelocity(glm::u16vec2(0, -1));
+			m_World->GetPlayer()->SetVelocity(glm::i16vec2(0, -1));
 		}
-		else if (m_World->GetPlayer()->GetVelocity().y != -1 && event.key.keysym.sym == SDL_KeyCode::SDLK_DOWN || event.key.keysym.sym == SDL_KeyCode::SDLK_s)
+		else if (m_World->GetPlayer()->GetVelocity().y != -1 && (event.key.keysym.sym == SDL_KeyCode::SDLK_DOWN || event.key.keysym.sym == SDL_KeyCode::SDLK_s))
 		{
-			m_World->GetPlayer()->SetVelocity(glm::u16vec2(0, 1));
+			m_World->GetPlayer()->SetVelocity(glm::i16vec2(0, 1));
 		}
-		else if (m_World->GetPlayer()->GetVelocity().y != 1 && event.key.keysym.sym == SDL_KeyCode::SDLK_LEFT || event.key.keysym.sym == SDL_KeyCode::SDLK_a)
+		else if (m_World->GetPlayer()->GetVelocity().x != 1 && (event.key.keysym.sym == SDL_KeyCode::SDLK_LEFT || event.key.keysym.sym == SDL_KeyCode::SDLK_a))
 		{
-			m_World->GetPlayer()->SetVelocity(glm::u16vec2(-1, 0));
+			m_World->GetPlayer()->SetVelocity(glm::i16vec2(-1, 0));
 		}
-		else if (m_World->GetPlayer()->GetVelocity().y != -1 && event.key.keysym.sym == SDL_KeyCode::SDLK_RIGHT || event.key.keysym.sym == SDL_KeyCode::SDLK_d)
+		else if (m_World->GetPlayer()->GetVelocity().x != -1 && (event.key.keysym.sym == SDL_KeyCode::SDLK_RIGHT || event.key.keysym.sym == SDL_KeyCode::SDLK_d))
 		{
-			m_World->GetPlayer()->SetVelocity(glm::u16vec2(1, 0));
+			m_World->GetPlayer()->SetVelocity(glm::i16vec2(1, 0));
 		}
+		// quit
+		else if (event.key.keysym.sym == SDL_KeyCode::SDLK_ESCAPE) m_Running = false;
 		break;
 	}
 }
@@ -123,7 +125,6 @@ void Engine::Render()
 	m_World->Render();
 	// Score
 	std::string scoreString = "Score : " + std::to_string(m_World->GetPlayer()->GetEatenApples());
-	std::cout << m_World->GetPlayer()->GetEatenApples() << std::endl;
 	SDL_Color color = { 255, 255, 255 };
 	SDL_Surface* surface = TTF_RenderText_Solid(m_Font,
 		scoreString.c_str(), color);

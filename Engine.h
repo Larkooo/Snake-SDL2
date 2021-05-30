@@ -16,7 +16,7 @@ public:
 	Engine();
 	~Engine();
 
-	void Init(const char* title, glm::u32vec2 screenPos, glm::u16vec2 size, bool fullscreen);
+	void Init(const char* title, glm::u32vec2 screenPos, glm::u32vec2 size, bool fullscreen);
 
 	inline bool IsRunning() { return m_Running; }
 	

@@ -13,7 +13,7 @@ void World::SpawnApple()
 	int screenHeight;
 	SDL_GetRendererOutputSize(m_Renderer, &screenWidth, &screenHeight);
 
-	SquareObject* apple = new SquareObject(glm::u16vec2(rand() % screenWidth, rand() % screenHeight), 10, m_Renderer);
+	SquareObject* apple = new SquareObject(glm::i16vec2(rand() % screenWidth, rand() % screenHeight), 10, m_Renderer);
 	m_Apples.push_back(apple);
 }
 
@@ -33,11 +33,35 @@ void World::Update()
 			// Remove eaten apple
 			m_Apples.erase(m_Apples.begin() + i);
 			// Add new snake node to player
-			m_Player->AddNode(new SquareObject(playerHead->GetPosition() - glm::u16vec2(15, 0), 10, m_Renderer));
+			m_Player->AddNode(new SquareObject(playerHead->GetPosition() - glm::i16vec2(15, 0), 10, m_Renderer));
 			// Spawn a new apple
 			SpawnApple();
 		}
 	}
+
+	// check if player head out of bound
+	glm::i16vec2 playerHeadPos = playerHead->GetPosition();
+	int screenWidth, screenHeight;
+	SDL_GetRendererOutputSize(m_Renderer, &screenWidth, &screenHeight);
+
+	if (playerHeadPos.x > screenWidth)
+	{
+		playerHeadPos.x = 0;
+	}
+	else if (playerHeadPos.x < 0)
+	{
+		playerHeadPos.x = screenWidth;
+	}
+
+	if (playerHeadPos.y > screenHeight)
+	{
+		playerHeadPos.y = 0;
+	}
+	else if (playerHeadPos.y < 0)
+	{
+		playerHeadPos.y = screenHeight;
+	}
+	playerHead->SetPosition(playerHeadPos);
 }
 
 void World::Render()
